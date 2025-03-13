@@ -9,8 +9,6 @@ class GomokuGame:
  
     def __init__(self, size=9, strike=5):
         """Initialize the game"""
-        SIZE = size  # Board size (default: 9x9)
-        STRIKE = strike  # Number of consecutive pieces needed to win
         self.board = [[EMPTY for _ in range(size)] for _ in range(size)]  # Create an empty board
         self.turn = PLAYER_BLACK  # Black starts first
         self.winner = None  # No winner at the beginning

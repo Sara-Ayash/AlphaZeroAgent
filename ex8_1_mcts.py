@@ -71,7 +71,7 @@ class MCTSPlayer:
         for child in node.children:
             self.print_tree(child, level + 1, exploration_weight)
 
-    def choose_move(self, game: GomokuGame, iterations: int):
+    def choose_move(self, game: GomokuGame, iterations: int = ITERATIONS_NUMBER):
         """
         Select the best move using MCTS.
         :param game: A Gomoku object representing the current game state.
@@ -212,44 +212,44 @@ class MCTSPlayer:
 def play_with_mcts(size=SIZE, strike=STRIKE):
     game = GomokuGame(size, strike)  # Initialize the GomoKu game
     mcts_player = MCTSPlayer()  # Create an MCTS player
-    game_gui = GomokuGUI()
-    threading.Thread(target=game_gui.start, daemon=False).start()
+    # game_gui = GomokuGUI()
+    # threading.Thread(target=game_gui.start, daemon=False).start()
     
     training_data: TrainingData = TrainingData()
 
     while game.winner == None:  # Play until the game ends
         if game.turn == PLAYER_BLACK:  # BLACK is the MCTS player
-            print("MCTS Player (BLACK) is thinking...")
+            # print("MCTS Player (BLACK) is thinking...")
             move, training_value = mcts_player.choose_move(game, iterations=ITERATIONS_NUMBER)  # MCTS chooses the move
             training_data.add_training_value(training_value)
         else:
-            row = int(input("Your move (WHITE, enter row: "))  # Human input
-            col = int(input("Your move (WHITE, enter column: "))  # Human input
-            move = (row, col) # Convert to move format
-            if move not in game.legal_moves():
-                print("Illegal move. Try again.")
-                continue
-
-            # # Perform a random move for human player
-            # legal_moves = game.legal_moves()
-            # if legal_moves:
-            #     move = random.choice(legal_moves)
-            # else:
+            # row = int(input("Your move (WHITE, enter row: "))  # Human input
+            # col = int(input("Your move (WHITE, enter column: "))  # Human input
+            # move = (row, col) # Convert to move format
+            # if move not in game.legal_moves():
             #     print("Illegal move. Try again.")
             #     continue
+
+            # Perform a random move for human player
+            legal_moves = game.legal_moves()
+            if legal_moves:
+                move = random.choice(legal_moves)
+            else:
+                print("Illegal move. Try again.")
+                continue
         
         x,y = move
 
-        game_gui.add_piece(x, y, game.turn)           
+        # game_gui.add_piece(x, y, game.turn)           
         
         game.make_move(move)  # Apply the chosen move and switch turn
         
-        print(game)  # Print the current state of the board
+        # print(game)  # Print the current state of the board
 
     for training_val in training_data.training_set:
         training_val.set_winner(game.winner)
 
-    game_gui.mark_winner(x, y, game.winner)
+    # game_gui.mark_winner(x, y, game.winner)
 
     # Show the final board
     if game.winner == PLAYER_BLACK:
@@ -262,13 +262,14 @@ def play_with_mcts(size=SIZE, strike=STRIKE):
     return training_data
 
 def build_training_set():
-    for i in range(1, 100):
-        print(f"Play [{i}/100] start")
+    games_number = 10
+    for i in range(1, games_number):
+        print(f"Play [{i}/{games_number}] start")
         training_set_results: TrainingData = play_with_mcts()
-        training_set_results.save_to_text_file("training_set.txt")
+        training_set_results.save_to_text_file("training_set1.txt")
     
 
 
 if __name__ == "__main__": 
-    play_with_mcts()
-    # build_training_set()
+    # play_with_mcts()
+    build_training_set()
