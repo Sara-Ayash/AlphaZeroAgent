@@ -152,8 +152,9 @@ def play_with_puct(size=SIZE, strike=STRIKE):
 
     while game.winner == None:  # Play until the game ends
         # mcts_move, _ = mcts_player.choose_move(game)
-        row = int(input("Your move (WHITE, enter row: "))  
-        col = int(input("Your move (WHITE, enter column: "))   
+        row, col = tuple(
+                    map(int, input("Your move (WHITE, enter row, col): ").split())
+                )   
         mcts_move = (row, col) 
         if mcts_move not in game.legal_moves():
             print("Illegal move. Try again.")
@@ -163,7 +164,6 @@ def play_with_puct(size=SIZE, strike=STRIKE):
         # game_gui.add_piece(x, y, PLAYER_BLACK)   
         game.make_move(mcts_move)
         print(game)
-
 
         if game.winner:
             break

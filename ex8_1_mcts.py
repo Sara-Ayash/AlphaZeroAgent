@@ -85,6 +85,7 @@ class MCTSPlayer:
             # rollout
             node = self.selection(root)  # Select a promising node
             child_node = self.expansion(node)
+
             result = self.simulation(child_node)  # Simulate a random game from the selected node
             
             self.backpropagation(child_node, result)  # Backpropagate the results
@@ -137,7 +138,6 @@ class MCTSPlayer:
         existing_moves = [child.move for child in node.children]
         untried_moves = [m for m in legal_moves if m not in existing_moves]
         move = untried_moves[-1]  # random.choice(untried_moves)
-
         new_state = node.game.clone()
         new_state.make_move(move)
         child_node = MCTSNode(new_state, node, move)
@@ -212,8 +212,8 @@ class MCTSPlayer:
 def play_with_mcts(size=SIZE, strike=STRIKE):
     game = GomokuGame(size, strike)  # Initialize the GomoKu game
     mcts_player = MCTSPlayer()  # Create an MCTS player
-    # game_gui = GomokuGUI()
-    # threading.Thread(target=game_gui.start, daemon=False).start()
+    game_gui = GomokuGUI()
+    threading.Thread(target=game_gui.start, daemon=False).start()
     
     training_data: TrainingData = TrainingData()
 
@@ -240,16 +240,16 @@ def play_with_mcts(size=SIZE, strike=STRIKE):
         
         x,y = move
 
-        # game_gui.add_piece(x, y, game.turn)           
+        game_gui.add_piece(x, y, game.turn)           
         
         game.make_move(move)  # Apply the chosen move and switch turn
         
-        # print(game)  # Print the current state of the board
+        print(game)  # Print the current state of the board
 
     for training_val in training_data.training_set:
         training_val.set_winner(game.winner)
 
-    # game_gui.mark_winner(x, y, game.winner)
+    game_gui.mark_winner(x, y, game.winner)
 
     # Show the final board
     if game.winner == PLAYER_BLACK:
@@ -262,7 +262,7 @@ def play_with_mcts(size=SIZE, strike=STRIKE):
     return training_data
 
 def build_training_set():
-    games_number = 10
+    games_number = 200
     for i in range(1, games_number):
         print(f"Play [{i}/{games_number}] start")
         training_set_results: TrainingData = play_with_mcts()
@@ -271,5 +271,5 @@ def build_training_set():
 
 
 if __name__ == "__main__": 
-    # play_with_mcts()
-    build_training_set()
+    play_with_mcts()
+    # build_training_set()

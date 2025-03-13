@@ -1,5 +1,3 @@
-import time 
-import pygame
 from config import BLACK_COLOR, WHITE_COLOR, BROWN_COLOR, SIZE, WIDTH, HEIGHT, CELL_SIZE, PLAYER_BLACK, PLAYER_WHITE, STRIKE
 import pygame
  
