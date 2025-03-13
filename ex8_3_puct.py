@@ -43,8 +43,8 @@ class PUCTNode:
         def puct_score(child):
             if child.N == 0:
                 return float('inf')  # Encourage unvisited nodes
-            U = child.Q + cpuct * child.P * math.sqrt(self.N) / (1 + child.N)
-            return U
+
+            return child.Q * self.game.turn + cpuct * child.P * math.sqrt(self.N) / (1 + child.N)
         
         max_puct = float('-inf') 
         best_children = []
@@ -97,7 +97,8 @@ class PUCTPlayer:
 
         untried_moves = [move for move in node.game.legal_moves() if move not in [child.move for child in node.children]]
         policy_matrix = P_pred.view(-1, 1, SIZE, SIZE)
- 
+
+        # TODO: normelize 
         for move in untried_moves:
             x,y = move
             next_state = node.game.clone()
@@ -111,12 +112,14 @@ class PUCTPlayer:
     def backpropagation(self, node: PUCTNode):
 
         """Propagate the simulation result back through the tree."""
+        value = node.Q
+        node.N +=1
+        node = node.parent
+
         while node is not None:
             node.N += 1 
-            total_Q = sum(child.Q for child in node.children)
-            avarage_Q = total_Q/len(node.children) if node.children and total_Q else node.Q
-            node.Q = avarage_Q # * node.game.turn
-            node = node.parent  # Move up to the parent node
+            node.Q += (value -node.Q) / node.N
+            node = node.parent  
 
 
     def print_tree(self, node: PUCTNode, level=0):
@@ -148,13 +151,10 @@ def play_with_puct(size=SIZE, strike=STRIKE):
     game = GomokuGame(size, strike)  # Initialize the GomoKu game
     # game_gui = GomokuGUI()
     # threading.Thread(target=game_gui.start, daemon=False).start()
-    
 
     while game.winner == None:  # Play until the game ends
         # mcts_move, _ = mcts_player.choose_move(game)
-        row, col = tuple(
-                    map(int, input("Your move (WHITE, enter row, col): ").split())
-                )   
+        row, col = tuple(map(int, input("Your move (WHITE, enter row, col): ").split()))   
         mcts_move = (row, col) 
         if mcts_move not in game.legal_moves():
             print("Illegal move. Try again.")
