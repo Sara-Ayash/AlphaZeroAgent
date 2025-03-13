@@ -212,8 +212,8 @@ class MCTSPlayer:
 def play_with_mcts(size=SIZE, strike=STRIKE):
     game = GomokuGame(size, strike)  # Initialize the GomoKu game
     mcts_player = MCTSPlayer()  # Create an MCTS player
-    game_gui = GomokuGUI()
-    threading.Thread(target=game_gui.start, daemon=False).start()
+    # game_gui = GomokuGUI()
+    # threading.Thread(target=game_gui.start, daemon=False).start()
     
     training_data: TrainingData = TrainingData()
 
@@ -240,16 +240,16 @@ def play_with_mcts(size=SIZE, strike=STRIKE):
         
         x,y = move
 
-        game_gui.add_piece(x, y, game.turn)           
+        # game_gui.add_piece(x, y, game.turn)           
         
         game.make_move(move)  # Apply the chosen move and switch turn
         
-        print(game)  # Print the current state of the board
+        # print(game)  # Print the current state of the board
 
     for training_val in training_data.training_set:
         training_val.set_winner(game.winner)
 
-    game_gui.mark_winner(x, y, game.winner)
+    # game_gui.mark_winner(x, y, game.winner)
 
     # Show the final board
     if game.winner == PLAYER_BLACK:
@@ -266,10 +266,9 @@ def build_training_set():
     for i in range(1, games_number):
         print(f"Play [{i}/{games_number}] start")
         training_set_results: TrainingData = play_with_mcts()
-        training_set_results.save_to_text_file("training_set1.txt")
+        training_set_results.save_to_text_file("training_set_6X6.txt")
     
 
-
 if __name__ == "__main__": 
-    play_with_mcts()
-    # build_training_set()
+    # play_with_mcts()
+    build_training_set()
