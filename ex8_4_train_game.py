@@ -17,7 +17,7 @@ if os.path.exists("game_network.pth"):
 
 # Read the training data file
 training_data = []
-with open("training_set1.txt", "r") as f:
+with open("training_set_6X6.txt", "r") as f:
     for line in f:
         try:
             entry = ast.literal_eval(line.strip())  # Read each entry separately
