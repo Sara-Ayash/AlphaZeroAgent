@@ -31,6 +31,7 @@ class PUCTNode:
         self.P = prior  # Prior probability (P) from the neural network
         self.Q = 0  # Average value of this node
         self.N = 0  # Visit count
+        self.total_value = 0.0  
 
 
     def is_fully_expanded(self):
@@ -75,15 +76,35 @@ class PUCTPlayer:
         # Perform iterations
         for _ in range(iterations):     
             node = self.selection(root)  # Select a promising node
-            node = self.expansion(node)
-            self.backpropagation(node)  # Backpropagate the results
+            value = self.simulation(node)
+            self.backpropagation(node, value)  # Backpropagate the results
 
         return root.best_child(1.0).move
 
+    def simulation(self, node: PUCTNode):
+        if not node.game.winner == None:
+            return node.game.winner
+
+        if not node.is_fully_expanded():
+            node = self.expansion(node)
+
+        # Select best child using PUCT
+        best_child = node.best_child(1.0)
+
+        # Recursively simulate
+        value = self.simulation(best_child)
+
+        return value
+    
+
     def selection(self, node: PUCTNode) -> PUCTNode: 
-        """Select the most promising child node using PUCT."""
-        while node.is_fully_expanded() and node.children:
-            node = node.best_child(self.cpuct) 
+        while node.game.winner == None:
+            if not node.is_fully_expanded():
+                return self.expansion(node)
+
+            # best child
+            node = node.best_child(1.0)
+        
         return node
 
 
@@ -93,33 +114,31 @@ class PUCTPlayer:
 
         P_pred, Q_pred = self.network(encoded_state_mtx)
 
-        node.Q = float(Q_pred)
-
         untried_moves = [move for move in node.game.legal_moves() if move not in [child.move for child in node.children]]
         policy_matrix = P_pred.view(-1, 1, SIZE, SIZE)
+
+        node.N += 1
+        node.total_value += Q_pred
+        node.Q = node.total_value / node.N
 
         # TODO: normelize 
         for move in untried_moves:
             x,y = move
             next_state = node.game.clone()
+            next_state.make_move(move)
             prior = float(policy_matrix[0,0,x,y])
             child_node = PUCTNode(next_state, parent=node, move=move, prior=prior) 
             node.children.append(child_node)  # Add the new child node to the tree
-    
-        return node # Return the newly expanded node
-    
-    
-    def backpropagation(self, node: PUCTNode):
 
-        """Propagate the simulation result back through the tree."""
-        value = node.Q
-        node.N +=1
-        node = node.parent
-
+        return node 
+    
+    
+    def backpropagation(self, node: PUCTNode, value: float):
         while node is not None:
             node.N += 1 
-            node.Q += (value -node.Q) / node.N
+            node.total_value += value
             node = node.parent  
+
 
 
     def print_tree(self, node: PUCTNode, level=0):
@@ -148,7 +167,6 @@ def play_with_puct(size=SIZE, strike=STRIKE):
     puct_player = PUCTPlayer(network=game_network)  # Create an PUCT player
     mcts_player = MCTSPlayer()  # Create an MCTS player
 
-    game = GomokuGame(size, strike)  # Initialize the GomoKu game
     # game_gui = GomokuGUI()
     # threading.Thread(target=game_gui.start, daemon=False).start()
 
